@@ -3,9 +3,9 @@ const CONFIG = {
     EMAIL_RECIPIENTS: ['kpm0027@auburn.edu', 'eyedr90@aol.com', 'idr90@aol.com'],
     GOOGLE_SHEETS_URL: 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE', // Replace with actual URL
     EMAILJS: {
-        SERVICE_ID: 'YOUR_EMAILJS_SERVICE_ID', // Replace with your EmailJS service ID
-        TEMPLATE_ID: 'YOUR_EMAILJS_TEMPLATE_ID', // Replace with your EmailJS template ID
-        PUBLIC_KEY: 'YOUR_EMAILJS_PUBLIC_KEY' // Replace with your EmailJS public key
+        SERVICE_ID: 'service_fcb3jnj',
+        TEMPLATE_ID: 'template_phf4exu', 
+        PUBLIC_KEY: 'LYsfhUe8MvlOQqsTq'
     }
 };
 
