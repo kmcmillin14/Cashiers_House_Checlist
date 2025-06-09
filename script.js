@@ -4,7 +4,7 @@ const CONFIG = {
     GOOGLE_SHEETS_URL: 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE', // Replace with actual URL
     EMAILJS: {
         SERVICE_ID: 'service_fcb3jnj',
-        TEMPLATE_ID: 'template_phf4exu', 
+        TEMPLATE_ID: 'template_d9gl6qo', 
         PUBLIC_KEY: 'LYsfhUe8MvlOQqsTq'
     }
 };
@@ -67,6 +67,8 @@ async function handleOpeningSubmit(event) {
     
     const formData = new FormData(event.target);
     const checkedItems = Array.from(formData.getAll('checklist'));
+    const guests = getGuestData('opening');
+    
     const data = {
         type: 'opening',
         name: formData.get('name'),
@@ -74,7 +76,9 @@ async function handleOpeningSubmit(event) {
         checklist: checkedItems,
         completedTasks: checkedItems.length,
         totalTasks: 10,
-        comments: formData.get('comments')
+        comments: formData.get('comments'),
+        guests: guests,
+        guestCount: guests.length
     };
     
     await processSubmission(data, event.target);
@@ -86,6 +90,8 @@ async function handleClosingSubmit(event) {
     
     const formData = new FormData(event.target);
     const checkedItems = Array.from(formData.getAll('checklist'));
+    const guests = getGuestData('closing');
+    
     const data = {
         type: 'closing',
         name: formData.get('name'),
@@ -93,7 +99,9 @@ async function handleClosingSubmit(event) {
         checklist: checkedItems,
         completedTasks: checkedItems.length,
         totalTasks: 20,
-        comments: formData.get('comments')
+        comments: formData.get('comments'),
+        guests: guests,
+        guestCount: guests.length
     };
     
     await processSubmission(data, event.target);
@@ -182,6 +190,8 @@ async function sendEmailNotification(data) {
         total_tasks: data.totalTasks || 0,
         checklist: data.checklist ? data.checklist.join('\n• ') : '',
         comments: data.comments || '',
+        guest_count: data.guestCount || 0,
+        guests: data.guests ? data.guests.map(g => g.name).join('\n• ') : '',
         message: generateEmailBody(data)
     };
     
@@ -223,11 +233,19 @@ ${data.type.charAt(0).toUpperCase() + data.type.slice(1)} Details:
     if (data.type === 'opening' || data.type === 'closing') {
         emailBody += `
 • Tasks Completed: ${data.completedTasks}/${data.totalTasks}
+• Number of Guests: ${data.guestCount}
 
 Completed Tasks:`;
         data.checklist.forEach(task => {
             emailBody += `\n✓ ${task}`;
         });
+        
+        if (data.guests && data.guests.length > 0) {
+            emailBody += `\n\nGuests:`;
+            data.guests.forEach(guest => {
+                emailBody += `\n• ${guest.name}`;
+            });
+        }
         
         if (data.completedTasks < data.totalTasks) {
             emailBody += `\n\nNote: Not all tasks were completed. Please review the checklist.`;
@@ -249,6 +267,51 @@ Best regards,
 McMillin Cashiers House Log System`;
     
     return emailBody.trim();
+}
+
+// Guest management functions
+function addGuest(type) {
+    const guestList = document.getElementById(`${type}GuestList`);
+    const newGuest = document.createElement('div');
+    newGuest.className = 'guest-entry';
+    newGuest.innerHTML = `
+        <div class="guest-inputs">
+            <input type="text" placeholder="Guest Name" class="guest-name">
+            <button type="button" class="remove-guest" onclick="removeGuest(this)">×</button>
+        </div>
+    `;
+    guestList.appendChild(newGuest);
+}
+
+function removeGuest(button) {
+    const guestEntry = button.closest('.guest-entry');
+    const guestList = guestEntry.parentNode;
+    
+    // Don't remove if it's the last guest entry
+    if (guestList.children.length > 1) {
+        guestEntry.remove();
+    } else {
+        // Clear the inputs instead
+        const nameInput = guestEntry.querySelector('.guest-name');
+        nameInput.value = '';
+    }
+}
+
+function getGuestData(type) {
+    const guestList = document.getElementById(`${type}GuestList`);
+    const guests = [];
+    
+    guestList.querySelectorAll('.guest-entry').forEach(entry => {
+        const name = entry.querySelector('.guest-name').value.trim();
+        
+        if (name) { // Only add guests with names
+            guests.push({
+                name: name
+            });
+        }
+    });
+    
+    return guests;
 }
 
 // Show success/error messages
